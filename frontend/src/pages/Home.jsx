@@ -14,7 +14,10 @@ export default function Home() {
     e.preventDefault()
     setError("")
 
-    const url = isLogin ? `${API_BASE}/auth/login` : `${API_BASE}/auth/register`
+    const url = isLogin
+  ? "https://metaspace-yhja.onrender.com/auth/login"
+  : "https://metaspace-yhja.onrender.com/auth/register"
+
 
     try {
       const res = await fetch(url, {
