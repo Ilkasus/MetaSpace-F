@@ -5,7 +5,7 @@ import AncientRoom from '../three/AncientRoom'
 export default function Room() {
   return (
     <div className="w-screen h-screen">
-      <Canvas camera={{ position: [0, 2, 5] }} dpr={[1, 1.5]}>
+      <Canvas camera={{ position: [0, 2, 5], fov: 60 }}>
         <Suspense fallback={null}>
           <AncientRoom />
         </Suspense>
