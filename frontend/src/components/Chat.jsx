@@ -1,44 +1,43 @@
-import { useState } from 'react'
-import useSocket from '../hooks/useSocket'
+import { useState, useEffect, useRef } from 'react'
 
-export default function Chat() {
-  const { connected, messages, usersCount, sendMessage } = useSocket()
+export default function Chat({ socket, messages, nickname }) {
   const [input, setInput] = useState('')
+  const messagesEndRef = useRef(null)
 
-  const handleSend = (e) => {
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  function sendMessage(e) {
     e.preventDefault()
-    if (input.trim()) {
-      sendMessage(input)
-      setInput('')
-    }
+    if (!input.trim()) return
+    socket.emit('chat_message', { nickname, text: input.trim() })
+    setInput('')
   }
 
   return (
-    <div className="absolute bottom-4 left-4 w-80 p-3 bg-white/90 rounded-lg shadow-md text-sm text-black">
-      <div className="font-bold mb-2">Live Chat ({usersCount} online)</div>
-      <div className="h-40 overflow-y-auto border border-gray-300 p-2 bg-white rounded mb-2">
-        {messages.map((msg, idx) => (
-          <div key={idx} className="mb-1">
-            {msg}
+    <div className="flex flex-col h-full p-2 bg-gray-800 text-white">
+      <div className="flex-grow overflow-auto mb-2">
+        {messages.map((msg, i) => (
+          <div key={i} className="mb-1">
+            <strong>{msg.nickname}:</strong> {msg.text}
           </div>
         ))}
+        <div ref={messagesEndRef} />
       </div>
-      <form onSubmit={handleSend} className="flex">
+      <form onSubmit={sendMessage} className="flex">
         <input
+          type="text"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={connected ? 'Type a message...' : 'Connecting...'}
-          className="flex-grow p-1 border border-gray-400 rounded-l"
-          disabled={!connected}
+          onChange={e => setInput(e.target.value)}
+          className="flex-grow p-2 rounded text-black"
+          placeholder="Type a message..."
         />
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-3 rounded-r disabled:bg-gray-400"
-          disabled={!connected}
-        >
+        <button type="submit" className="ml-2 px-4 bg-blue-600 rounded">
           Send
         </button>
       </form>
     </div>
   )
 }
+
