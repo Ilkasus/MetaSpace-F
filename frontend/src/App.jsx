@@ -6,25 +6,9 @@ import Register from "./pages/Register"
 import { useState, useEffect } from "react"
 import { io } from "socket.io-client"
 
+const socket = io("https://metaspace-yhja.onrender.com") 
+
 export default function App() {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/room/:id" element={<Room />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-      </Routes>
-    </Router>
-  )
-}
-
-
-
-
-const socket = io("https://your-backend-url:5000") // адрес backend/socket_server.py
-
-function App() {
   const [players, setPlayers] = useState({})
 
   useEffect(() => {
@@ -37,12 +21,14 @@ function App() {
     }
   }, [])
 
-
   return (
-    <>
-      {/*3D сцены и передача players*/}
-    </>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/room/:id" element={<Room socket={socket} players={players} />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+      </Routes>
+    </Router>
   )
 }
-
-export default App
