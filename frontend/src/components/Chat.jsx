@@ -5,8 +5,12 @@ export default function Chat({ socket, messages, nickname }) {
   const messagesEndRef = useRef(null)
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+  socket.on('chat_message', (msg) => {
+    setMessages(prev => [...prev, msg]);
+  });
+  return () => socket.off('chat_message');
+}, [socket]);
+
 
   function sendMessage(e) {
     e.preventDefault()
