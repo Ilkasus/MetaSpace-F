@@ -1,11 +1,9 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
 
-export default function Login() {
+export default function LoginForm({ onSuccess, switchToRegister }) {
   const [nickname, setNickname] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState(null)
-  const navigate = useNavigate()
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -23,15 +21,14 @@ export default function Login() {
       }
       localStorage.setItem("token", data.access_token)
       localStorage.setItem("nickname", nickname)
-      navigate("/")
+      onSuccess()
     } catch {
       setError("Network error")
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-sm mx-auto mt-20 p-6 border rounded">
-      <h1 className="text-2xl mb-4">Login</h1>
+    <form onSubmit={handleSubmit}>
       <input
         type="text"
         placeholder="Nickname"
@@ -49,7 +46,14 @@ export default function Login() {
         className="w-full mb-4 p-2 border"
       />
       {error && <p className="text-red-500 mb-4">{error}</p>}
-      <button type="submit" className="w-full p-2 bg-green-600 text-white rounded">Login</button>
+      <button type="submit" className="w-full p-2 bg-green-600 text-white rounded mb-4">Login</button>
+      <p className="text-center text-sm">
+        Don't have an account?{" "}
+        <button type="button" onClick={switchToRegister} className="text-green-600 underline">
+          Register
+        </button>
+      </p>
     </form>
   )
 }
+
