@@ -1,5 +1,7 @@
 import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
+
+const API_BASE = "https://metaspace-yhja.onrender.com"
 
 export default function Home() {
   const [isLogin, setIsLogin] = useState(false)
@@ -12,21 +14,30 @@ export default function Home() {
     e.preventDefault()
     setError("")
 
-    const url = isLogin ? "/auth/login" : "/auth/register"
+    const url = isLogin ? `${API_BASE}/auth/login` : `${API_BASE}/auth/register`
+
     try {
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nickname, password }),
       })
+
+      let data
+      try {
+        data = await res.json()
+      } catch {
+        const text = await res.text()
+        throw new Error(text || "Unknown error")
+      }
+
       if (!res.ok) {
-        const data = await res.json()
         throw new Error(data.detail || "Error")
       }
-      const data = await res.json()
+
       localStorage.setItem("token", data.access_token)
       localStorage.setItem("nickname", data.nickname)
-      navigate("/room/1") // переходим в метавселенную
+      navigate("/room/1") 
     } catch (e) {
       setError(e.message)
     }
@@ -87,3 +98,4 @@ export default function Home() {
     </div>
   )
 }
+
