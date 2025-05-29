@@ -6,7 +6,7 @@ import Chat from '../components/Chat'
 import io from 'socket.io-client'
 import * as THREE from 'three'
 
-const SOCKET_URL = 'https://your-backend-domain.com' 
+const SOCKET_URL = 'https://metaspace-yhja.onrender.com' 
 
 export default function Room() {
   const [socket, setSocket] = useState(null)
