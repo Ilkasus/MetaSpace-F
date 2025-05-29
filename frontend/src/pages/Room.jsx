@@ -1,6 +1,7 @@
 import { Canvas } from '@react-three/fiber'
 import { Suspense } from 'react'
 import AncientRoom from '../three/AncientRoom'
+import Chat from '../components/Chat'
 
 export default function Room() {
   return (
