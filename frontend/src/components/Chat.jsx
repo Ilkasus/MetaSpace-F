@@ -1,21 +1,28 @@
 import { useState, useEffect, useRef } from 'react'
 
-export default function Chat({ socket, messages, nickname }) {
+export default function Chat({ socket, nickname }) {
   const [input, setInput] = useState('')
+  const [messages, setMessages] = useState([])
   const messagesEndRef = useRef(null)
 
   useEffect(() => {
-  socket.on('chat_message', (msg) => {
-    setMessages(prev => [...prev, msg]);
-  });
-  return () => socket.off('chat_message');
-}, [socket]);
+    socket.on('receive_message', (msg) => {
+      setMessages(prev => [...prev, msg])
+    })
 
+    return () => socket.off('receive_message')
+  }, [socket])
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
   function sendMessage(e) {
     e.preventDefault()
-    if (!input.trim()) return
-    socket.emit('chat_message', { nickname, text: input.trim() })
+    const trimmed = input.trim()
+    if (!trimmed) return
+
+    socket.emit('chat_message', { nickname, text: trimmed })
     setInput('')
   }
 
@@ -44,4 +51,3 @@ export default function Chat({ socket, messages, nickname }) {
     </div>
   )
 }
-
