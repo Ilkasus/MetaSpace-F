@@ -1,16 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { io } from 'socket.io-client'
 
-const SOCKET_URL = 'http://localhost:5000'  // или твой продакшен url
+const SOCKET_URL = 'https://metaspace-yhja.onrender.com' 
 
 export default function useSocket() {
   const socket = useRef(null)
   const [connected, setConnected] = useState(false)
   const [messages, setMessages] = useState([])
   const [usersCount, setUsersCount] = useState(0)
+  const [players, setPlayers] = useState({})
 
   useEffect(() => {
-    socket.current = io(SOCKET_URL, { transports: ['websocket'] })
+    socket.current = io(SOCKET_URL, {
+      transports: ['websocket'],
+    })
 
     socket.current.on('connect', () => {
       setConnected(true)
@@ -20,7 +23,11 @@ export default function useSocket() {
       setConnected(false)
     })
 
-    socket.current.on('message', (msg) => {
+    socket.current.on('chat_message', (msg) => {
+      setMessages((prev) => [...prev, msg])
+    })
+
+    socket.current.on('receive_message', (msg) => {
       setMessages((prev) => [...prev, msg])
     })
 
@@ -28,16 +35,26 @@ export default function useSocket() {
       setUsersCount(count)
     })
 
+    socket.current.on('players_update', (data) => {
+      setPlayers(data)
+    })
+
     return () => {
       socket.current.disconnect()
     }
   }, [])
 
-  function sendMessage(msg) {
+  function sendMessage({ nickname, text }) {
     if (socket.current) {
-      socket.current.emit('message', msg)
+      socket.current.emit('chat_message', { nickname, text })
     }
   }
 
-  return { connected, messages, usersCount, sendMessage }
+  function movePlayer({ nickname, position, rotation }) {
+    if (socket.current) {
+      socket.current.emit('player_move', { nickname, position, rotation })
+    }
+  }
+
+  return { connected, messages, usersCount, players, sendMessage, movePlayer }
 }
