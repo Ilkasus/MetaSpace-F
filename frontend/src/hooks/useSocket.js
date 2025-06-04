@@ -20,10 +20,12 @@ export default function useSocket() {
 
     socket.current.on('connect', () => {
       setConnected(true);
+      console.log('Socket connected:', socket.current.id);
     });
 
     socket.current.on('disconnect', () => {
       setConnected(false);
+      console.log('Socket disconnected');
     });
 
     socket.current.on('chat_message', (msg) => {
@@ -51,7 +53,7 @@ export default function useSocket() {
         case 'd': p[0] += moveStep; break;
         case 'ArrowLeft': r[1] -= rotStep; break;
         case 'ArrowRight': r[1] += rotStep; break;
-        default: return;
+        default: return; 
       }
 
       movePlayer({ position: p, rotation: r });
@@ -66,22 +68,26 @@ export default function useSocket() {
   }, []);
 
   function sendMessage({ text }) {
-    if (socket.current && nicknameRef.current) {
+    if (socket.current && socket.current.connected && nicknameRef.current) {
       socket.current.emit('chat_message', {
         nickname: nicknameRef.current,
         text,
       });
+    } else {
+      console.warn('Socket not connected or nickname not set');
     }
   }
 
   function movePlayer({ position, rotation }) {
     playerRef.current = { position, rotation };
-    if (socket.current && nicknameRef.current) {
+    if (socket.current && socket.current.connected && nicknameRef.current) {
       socket.current.emit('player_move', {
         nickname: nicknameRef.current,
         position,
         rotation,
       });
+    } else {
+      console.warn('Socket not connected or nickname not set');
     }
   }
 
@@ -91,13 +97,14 @@ export default function useSocket() {
   }
 
   return {
-   connected,
-   messages,
-   usersCount,
-   players,
-   sendMessage,
-   movePlayer,
-   initPlayer,
-   nickname: nicknameRef.current,
-   socket: socket.current // <== добавь это
- };
+    connected,
+    messages,
+    usersCount,
+    players,
+    sendMessage,
+    movePlayer,
+    initPlayer,
+    nickname: nicknameRef.current,
+    socket: socket.current,
+  };
+}
