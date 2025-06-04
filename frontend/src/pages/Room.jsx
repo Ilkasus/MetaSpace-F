@@ -31,30 +31,6 @@ function PlayerControls({ socket }) {
     }
   }, [])
 
-  useFrame((_, delta) => {
-    if (!ref.current) return
-
-    velocity.current.set(0, 0, 0)
-    if (keysPressed.current['w']) velocity.current.z -= speed * delta
-    if (keysPressed.current['s']) velocity.current.z += speed * delta
-    if (keysPressed.current['a']) velocity.current.x -= speed * delta
-    if (keysPressed.current['d']) velocity.current.x += speed * delta
-
-    direction.current.copy(velocity.current).applyEuler(camera.rotation)
-    ref.current.position.add(direction.current)
-
-    const pos = ref.current.position
-
-    camera.position.lerp(new THREE.Vector3(pos.x, pos.y + 2, pos.z + 5), 0.1)
-    camera.lookAt(pos)
-
-    if (socket && socket.connected) {
-      socket.emit('update_position', {
-        position: [pos.x, pos.y, pos.z],
-        rotation: [0, ref.current.rotation.y, 0]
-      })
-    }
-  })
 
   return (
     <group ref={ref}>
