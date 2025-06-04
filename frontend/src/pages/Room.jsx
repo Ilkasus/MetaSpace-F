@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState, Suspense } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import AncientRoom from '../three/AncientRoom'
