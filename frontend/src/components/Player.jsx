@@ -8,7 +8,6 @@ export default function Player({ socket, nickname }) {
   const group = useRef()
   const { camera } = useThree()
   const keys = useRef({})
-  const velocity = useRef(new THREE.Vector3())
 
   const speed = 0.1
   const rotationSpeed = 0.05
@@ -24,22 +23,36 @@ export default function Player({ socket, nickname }) {
     }
   }, [])
 
-  useFrame((_, delta) => {
+  useFrame(() => {
     if (!group.current) return
 
     const moveDirection = new THREE.Vector3()
     const rotation = group.current.rotation
 
+    const gamepads = navigator.getGamepads()
+    const gp = gamepads[0] 
+    let gpX = 0, gpZ = 0, gpRot = 0
+
+    if (gp) {
+
+      gpX = gp.axes[0] 
+      gpZ = gp.axes[1] 
+      gpRot = gp.axes[2] 
+
+      if (Math.abs(gpX) > 0.1) moveDirection.x += gpX
+      if (Math.abs(gpZ) > 0.1) moveDirection.z += gpZ
+      if (Math.abs(gpRot) > 0.1) group.current.rotation.y -= gpRot * rotationSpeed
+    }
+
     if (keys.current['KeyW']) moveDirection.z -= 1
     if (keys.current['KeyS']) moveDirection.z += 1
     if (keys.current['KeyA']) moveDirection.x -= 1
     if (keys.current['KeyD']) moveDirection.x += 1
+    if (keys.current['ArrowLeft']) group.current.rotation.y += rotationSpeed
+    if (keys.current['ArrowRight']) group.current.rotation.y -= rotationSpeed
 
     moveDirection.normalize().applyEuler(rotation)
     group.current.position.addScaledVector(moveDirection, speed)
-
-    if (keys.current['ArrowLeft']) group.current.rotation.y += rotationSpeed
-    if (keys.current['ArrowRight']) group.current.rotation.y -= rotationSpeed
 
     const camOffset = new THREE.Vector3(0, 2, 5).applyEuler(rotation)
     camera.position.lerp(group.current.position.clone().add(camOffset), 0.1)
