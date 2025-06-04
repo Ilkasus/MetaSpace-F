@@ -1,4 +1,5 @@
-import { useGLTF, extend } from '@react-three/drei'
+import { useGLTF } from '@react-three/drei'
+import { extend } from '@react-three/fiber'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry'
 import * as THREE from 'three'
 
