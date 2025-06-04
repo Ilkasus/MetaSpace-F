@@ -1,4 +1,4 @@
-iimport React, { useEffect, useRef, useState, Suspense } from 'react'
+import React, { useEffect, useRef, useState, Suspense } from 'react'
 import { Canvas } from '@react-three/fiber'
 import io from 'socket.io-client'
 import * as THREE from 'three'
