@@ -32,27 +32,28 @@ export default function PlayerController({ socket }) {
   }, [])
 
   useFrame(() => {
-    if (!ref.current) return
+  if (!ref.current) return
 
-    direction.set(0, 0, 0)
-    if (keys.current.KeyW || keys.current.ArrowUp) direction.z -= 1
-    if (keys.current.KeyS || keys.current.ArrowDown) direction.z += 1
-    if (keys.current.KeyA || keys.current.ArrowLeft) direction.x -= 1
-    if (keys.current.KeyD || keys.current.ArrowRight) direction.x += 1
-    direction.normalize().multiplyScalar(speed)
+  direction.set(0, 0, 0)
+  if (keys.current.KeyW || keys.current.ArrowUp) direction.z -= 1
+  if (keys.current.KeyS || keys.current.ArrowDown) direction.z += 1
+  if (keys.current.KeyA || keys.current.ArrowLeft) direction.x -= 1
+  if (keys.current.KeyD || keys.current.ArrowRight) direction.x += 1
+  direction.normalize().multiplyScalar(speed)
 
-    ref.current.position.add(direction)
+  ref.current.position.add(direction)
 
-    camera.position.lerp(
-      new Vector3(
-        ref.current.position.x,
-        ref.current.position.y + 2,
-        ref.current.position.z + 5
-      ),
-      0.1
-    )
-    camera.lookAt(ref.current.position)
+  camera.position.lerp(
+    new Vector3(
+      ref.current.position.x,
+      ref.current.position.y + 2,
+      ref.current.position.z + 5
+    ),
+    0.1
+  )
+  camera.lookAt(ref.current.position)
 
+  if (socket && socket.connected) {
     socket.emit('move', {
       position: [
         ref.current.position.x,
@@ -61,7 +62,8 @@ export default function PlayerController({ socket }) {
       ],
       rotation: [0, ref.current.rotation.y, 0]
     })
-  })
+  }
+})
 
   return (
     <group ref={ref}>
