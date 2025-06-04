@@ -1,31 +1,30 @@
-import { useFrame } from '@react-three/fiber'
-import { useRef, useEffect, useState } from 'react'
+import { useFrame, useThree } from '@react-three/fiber'
+import { useEffect, useRef, useState } from 'react'
 import { Vector3 } from 'three'
+import Avatar from '../three/Avatar'
 
-export default function Player({ socket, nickname }) {
+export default function LocalPlayer({ socket, nickname }) {
   const ref = useRef()
-  const keysPressed = useRef({})
-  const [position, setPosition] = useState([0, 1, 0]) // немного выше пола
-  const speed = 0.1
+  const { camera } = useThree()
+  const speed = 0.05
+  const direction = new Vector3()
 
-  const keyMap = {
-    ArrowUp: 'forward',
-    ArrowDown: 'backward',
-    ArrowLeft: 'left',
-    ArrowRight: 'right',
-    KeyW: 'forward',
-    KeyS: 'backward',
-    KeyA: 'left',
-    KeyD: 'right'
-  }
+  const keys = useRef({
+    ArrowUp: false,
+    ArrowDown: false,
+    ArrowLeft: false,
+    ArrowRight: false,
+    KeyW: false,
+    KeyA: false,
+    KeyS: false,
+    KeyD: false,
+  })
 
   useEffect(() => {
-    const down = (e) => keysPressed.current[e.code] = true
-    const up = (e) => keysPressed.current[e.code] = false
-
+    const down = (e) => keys.current[e.code] = true
+    const up = (e) => keys.current[e.code] = false
     window.addEventListener('keydown', down)
     window.addEventListener('keyup', up)
-
     return () => {
       window.removeEventListener('keydown', down)
       window.removeEventListener('keyup', up)
@@ -35,22 +34,25 @@ export default function Player({ socket, nickname }) {
   useFrame(() => {
     if (!ref.current) return
 
-    const direction = new Vector3()
-
-    if (keysPressed.current['KeyW'] || keysPressed.current['ArrowUp']) direction.z -= 1
-    if (keysPressed.current['KeyS'] || keysPressed.current['ArrowDown']) direction.z += 1
-    if (keysPressed.current['KeyA'] || keysPressed.current['ArrowLeft']) direction.x -= 1
-    if (keysPressed.current['KeyD'] || keysPressed.current['ArrowRight']) direction.x += 1
-
+    direction.set(0, 0, 0)
+    if (keys.current.KeyW || keys.current.ArrowUp) direction.z -= 1
+    if (keys.current.KeyS || keys.current.ArrowDown) direction.z += 1
+    if (keys.current.KeyA || keys.current.ArrowLeft) direction.x -= 1
+    if (keys.current.KeyD || keys.current.ArrowRight) direction.x += 1
     direction.normalize().multiplyScalar(speed)
     ref.current.position.add(direction)
 
-    setPosition([
-      ref.current.position.x,
-      ref.current.position.y,
-      ref.current.position.z
-    ])
+    camera.position.lerp(
+      new Vector3(
+        ref.current.position.x,
+        ref.current.position.y + 2,
+        ref.current.position.z + 5
+      ),
+      0.1
+    )
+    camera.lookAt(ref.current.position)
 
+    // Отправка позиции на сервер
     if (socket && socket.connected) {
       socket.emit('player_move', {
         nickname,
@@ -64,9 +66,8 @@ export default function Player({ socket, nickname }) {
   })
 
   return (
-    <mesh ref={ref} position={position}>
-      <boxGeometry args={[1, 2, 1]} />
-      <meshStandardMaterial color="orange" />
-    </mesh>
+    <group ref={ref}>
+      <Avatar scale={0.5} />
+    </group>
   )
 }
