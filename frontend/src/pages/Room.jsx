@@ -16,7 +16,7 @@ function PlayerAvatar({ position, rotation, nickname }) {
 
   useEffect(() => {
     if (!ref.current) return
-    ref.current.position.set(...position)
+    ref.current.position.set(position.x, position.y, position.z)
     if (rotation) ref.current.rotation.set(...rotation)
   }, [position, rotation])
 
@@ -77,7 +77,6 @@ export default function Room() {
 
   return (
     <div className="w-screen h-screen flex flex-col">
-      {/* 3D сцена */}
       <div className="flex-grow">
         <Canvas camera={{ position: [0, 2, 5], fov: 60 }}>
           <Suspense fallback={null}>
@@ -87,7 +86,7 @@ export default function Room() {
               id !== socket?.id && player?.position ? (
                 <PlayerAvatar
                   key={id}
-                  position={[player.position.x, player.position.y, player.position.z]}
+                  position={player.position}
                   rotation={player.rotation || [0, 0, 0]}
                   nickname={player.nickname}
                 />
