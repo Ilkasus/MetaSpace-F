@@ -15,20 +15,28 @@ function PlayerAvatar({ position, rotation, nickname }) {
   const ref = useRef()
 
   useEffect(() => {
-    if (!ref.current) return
-    ref.current.position.set(position.x, position.y, position.z)
-    if (rotation) ref.current.rotation.set(...rotation)
+    if (ref.current) {
+      ref.current.position.set(...position)
+      if (rotation) ref.current.rotation.set(...rotation)
+    }
   }, [position, rotation])
 
   return (
     <group ref={ref}>
       <Avatar scale={0.5} />
-      <Text position={[0, 2.2, 0]} fontSize={0.3} color="white" anchorX="center" anchorY="middle">
+      <Text
+        position={[0, 2.2, 0]}
+        fontSize={0.3}
+        color="white"
+        anchorX="center"
+        anchorY="middle"
+      >
         {nickname}
       </Text>
     </group>
   )
 }
+
 
 export default function Room() {
   const [socket, setSocket] = useState(null)
