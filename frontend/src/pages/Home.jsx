@@ -8,16 +8,15 @@ export default function Home() {
   const [nickname, setNickname] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError("")
+    setLoading(true)
 
-    const url = isLogin
-  ? "https://metaspace-yhja.onrender.com/auth/login"
-  : "https://metaspace-yhja.onrender.com/auth/register"
-
+    const url = isLogin ? `${API_BASE}/auth/login` : `${API_BASE}/auth/register`
 
     try {
       const res = await fetch(url, {
@@ -35,14 +34,16 @@ export default function Home() {
       }
 
       if (!res.ok) {
-        throw new Error(data.detail || "Error")
+        throw new Error(data.detail || "Error occurred")
       }
 
       localStorage.setItem("token", data.access_token)
       localStorage.setItem("nickname", data.nickname)
       navigate("/room/1") 
     } catch (e) {
-      setError(e.message)
+      setError(e.message || "Something went wrong")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -63,6 +64,7 @@ export default function Home() {
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
             required
+            autoComplete="username"
             className="w-full mt-1 p-2 rounded bg-gray-700 text-white"
           />
         </label>
@@ -74,6 +76,7 @@ export default function Home() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            autoComplete={isLogin ? "current-password" : "new-password"}
             className="w-full mt-1 p-2 rounded bg-gray-700 text-white"
           />
         </label>
@@ -82,9 +85,12 @@ export default function Home() {
 
         <button
           type="submit"
-          className="w-full bg-indigo-600 py-3 rounded hover:bg-indigo-700 transition"
+          disabled={loading}
+          className={`w-full py-3 rounded transition ${
+            loading ? "bg-indigo-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700"
+          }`}
         >
-          {isLogin ? "Login" : "Register"}
+          {loading ? (isLogin ? "Logging in..." : "Registering...") : (isLogin ? "Login" : "Register")}
         </button>
 
         <button
@@ -101,4 +107,3 @@ export default function Home() {
     </div>
   )
 }
-
