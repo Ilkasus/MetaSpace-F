@@ -11,13 +11,13 @@ import { Text } from '@react-three/drei'
 
 const SOCKET_URL = 'https://metaspace-yhja.onrender.com'
 
-function PlayerAvatar({ position, rotation, nickname }) {
+function PlayerAvatar({ position = [0, 0, 0], rotation = [0, 0, 0], nickname }) {
   const ref = useRef()
 
   useEffect(() => {
     if (ref.current) {
       ref.current.position.set(...position)
-      if (rotation) ref.current.rotation.set(...rotation)
+      ref.current.rotation.set(...rotation)
     }
   }, [position, rotation])
 
@@ -37,7 +37,6 @@ function PlayerAvatar({ position, rotation, nickname }) {
   )
 }
 
-
 export default function Room() {
   const [socket, setSocket] = useState(null)
   const [players, setPlayers] = useState({})
@@ -56,7 +55,7 @@ export default function Room() {
     const newSocket = io(SOCKET_URL, {
       transports: ['websocket'],
       path: '/socket.io/',
-      auth: { token }
+      auth: { token },
     })
 
     setSocket(newSocket)
@@ -66,8 +65,8 @@ export default function Room() {
       newSocket.emit('join', { nickname })
     })
 
-    newSocket.on('players_update', (players) => {
-      setPlayers(players)
+    newSocket.on('players_update', (playersData) => {
+      setPlayers(playersData)
     })
 
     newSocket.on('chat_message', (message) => {
@@ -76,6 +75,8 @@ export default function Room() {
 
     newSocket.on('disconnect', () => {
       console.log('[socket] disconnected')
+      setPlayers({})
+      setChatMessages([])
     })
 
     return () => {
@@ -89,7 +90,9 @@ export default function Room() {
         <Canvas camera={{ position: [0, 2, 5], fov: 60 }}>
           <Suspense fallback={null}>
             <AncientRoom />
+            {/* Ваш собственный игрок */}
             {socket && <Player socket={socket} nickname={nickname} />}
+            {/* Другие игроки */}
             {Object.entries(players).map(([id, player]) =>
               id !== socket?.id && player?.position ? (
                 <PlayerAvatar
@@ -105,7 +108,9 @@ export default function Room() {
       </div>
 
       <div className="h-48 border-t">
-        {socket && <Chat socket={socket} messages={chatMessages} nickname={nickname} />}
+        {socket && (
+          <Chat socket={socket} messages={chatMessages} nickname={nickname} />
+        )}
       </div>
     </div>
   )
