@@ -14,7 +14,6 @@ function PlayerControls({ socket, nickname }) {
   const { camera } = useThree()
   const ref = useRef()
   const position = useRef(new THREE.Vector3(0, 0, 0))
-  const rotation = useRef(0)
   const keysPressed = useRef({})
   const speed = 0.1
 
@@ -28,7 +27,6 @@ function PlayerControls({ socket, nickname }) {
 
     window.addEventListener('keydown', downHandler)
     window.addEventListener('keyup', upHandler)
-
     return () => {
       window.removeEventListener('keydown', downHandler)
       window.removeEventListener('keyup', upHandler)
@@ -38,16 +36,15 @@ function PlayerControls({ socket, nickname }) {
   useFrame(() => {
     if (!ref.current) return
 
-    const dir = new THREE.Vector3()
-    if (keysPressed.current['w'] || keysPressed.current['arrowup']) dir.z -= 1
-    if (keysPressed.current['s'] || keysPressed.current['arrowdown']) dir.z += 1
-    if (keysPressed.current['a'] || keysPressed.current['arrowleft']) dir.x -= 1
-    if (keysPressed.current['d'] || keysPressed.current['arrowright']) dir.x += 1
+    const direction = new THREE.Vector3()
+    if (keysPressed.current['w'] || keysPressed.current['arrowup']) direction.z -= 1
+    if (keysPressed.current['s'] || keysPressed.current['arrowdown']) direction.z += 1
+    if (keysPressed.current['a'] || keysPressed.current['arrowleft']) direction.x -= 1
+    if (keysPressed.current['d'] || keysPressed.current['arrowright']) direction.x += 1
 
-    if (dir.lengthSq() > 0) {
-      dir.normalize()
-      position.current.add(dir.multiplyScalar(speed))
-
+    if (direction.lengthSq() > 0) {
+      direction.normalize().multiplyScalar(speed)
+      position.current.add(direction)
       ref.current.position.copy(position.current)
 
       const camPos = new THREE.Vector3(
@@ -136,11 +133,16 @@ export default function Room() {
     setSocket(newSocket)
 
     newSocket.on('players_update', setPlayers)
-    newSocket.on('chat_message', (msg) => setChatMessages((prev) => [...prev, msg]))
+
+    newSocket.on('chat_message', (msg) => {
+      setChatMessages(prev => [...prev, msg])
+    })
+
     newSocket.on('connect', () => {
       console.log('[socket] connected:', newSocket.id)
       newSocket.emit('join', { nickname })
     })
+
     newSocket.on('disconnect', () => {
       console.log('[socket] disconnected')
     })
@@ -159,7 +161,7 @@ export default function Room() {
 
             {socket && <PlayerControls socket={socket} nickname={nickname} />}
 
-            {/* Другие игроки */}
+            {/* Отображение других игроков */}
             {Object.entries(players).map(([id, player]) =>
               id !== socket?.id ? (
                 <PlayerAvatar key={id} {...player} />
@@ -171,7 +173,9 @@ export default function Room() {
 
       {/* Чат */}
       <div className="h-48 border-t">
-        {socket && <Chat socket={socket} messages={chatMessages} nickname={nickname} />}
+        {socket && (
+          <Chat socket={socket} messages={chatMessages} nickname={nickname} />
+        )}
       </div>
     </div>
   )
