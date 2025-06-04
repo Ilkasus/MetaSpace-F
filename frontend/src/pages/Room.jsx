@@ -6,7 +6,6 @@ import io from 'socket.io-client'
 import AncientRoom from '../three/AncientRoom'
 import Avatar from '../three/Avatar'
 import Chat from '../components/Chat'
-import PlayerController from '../components/PlayerController'
 import { Text } from '@react-three/drei'
 
 const SOCKET_URL = 'https://metaspace-yhja.onrender.com'
@@ -49,10 +48,12 @@ function PlayerControls({ socket }) {
     camera.position.lerp(new THREE.Vector3(pos.x, pos.y + 2, pos.z + 5), 0.1)
     camera.lookAt(pos)
 
-    socket.emit('update_position', {
-      position: [pos.x, pos.y, pos.z],
-      rotation: [0, ref.current.rotation.y, 0]
-    })
+    if (socket && socket.connected) {
+      socket.emit('update_position', {
+        position: [pos.x, pos.y, pos.z],
+        rotation: [0, ref.current.rotation.y, 0]
+      })
+    }
   })
 
   return (
@@ -102,14 +103,27 @@ export default function Room() {
       return
     }
 
-    const newSocket = io(SOCKET_URL, { auth: { token } })
+    const newSocket = io(SOCKET_URL, {
+      transports: ['websocket'],
+      path: '/socket.io/',
+      auth: { token }
+    })
+
     setSocket(newSocket)
 
-    newSocket.on('players_update', (players) => setPlayers(players))
-    newSocket.on('chat_message', (msg) => setChatMessages(prev => [...prev, msg]))
-    newSocket.on('connect', () => newSocket.emit('join', { nickname }))
+    newSocket.on('players_update', setPlayers)
+    newSocket.on('chat_message', (msg) => setChatMessages((prev) => [...prev, msg]))
+    newSocket.on('connect', () => {
+      console.log('[socket] connected:', newSocket.id)
+      newSocket.emit('join', { nickname })
+    })
+    newSocket.on('disconnect', () => {
+      console.log('[socket] disconnected')
+    })
 
-    return () => newSocket.disconnect()
+    return () => {
+      newSocket.disconnect()
+    }
   }, [token, nickname])
 
   return (
@@ -118,10 +132,7 @@ export default function Room() {
         <Canvas camera={{ position: [0, 2, 5], fov: 60 }}>
           <Suspense fallback={null}>
             <AncientRoom />
-            <PlayerController />
             {socket && <PlayerControls socket={socket} />}
-
-            {/* Рендерим всех других игроков */}
             {Object.entries(players).map(([id, player]) => (
               id !== socket?.id && (
                 <PlayerAvatar
@@ -134,11 +145,9 @@ export default function Room() {
           </Suspense>
         </Canvas>
       </div>
-
       <div className="h-48 border-t">
         {socket && <Chat socket={socket} messages={chatMessages} nickname={nickname} />}
       </div>
     </div>
   )
 }
-
