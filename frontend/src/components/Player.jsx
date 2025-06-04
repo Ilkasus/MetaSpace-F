@@ -5,78 +5,72 @@ import Avatar from '../three/Avatar'
 import { Text } from '@react-three/drei'
 
 export default function Player({ socket, nickname }) {
-  const group = useRef()
+  const ref = useRef()
   const { camera } = useThree()
   const keys = useRef({})
-
-  const speed = 0.1
-  const rotationSpeed = 0.05
+  const velocity = 0.12
+  const turnSpeed = 0.05
 
   useEffect(() => {
-    const onKeyDown = (e) => keys.current[e.code] = true
-    const onKeyUp = (e) => keys.current[e.code] = false
-    window.addEventListener('keydown', onKeyDown)
-    window.addEventListener('keyup', onKeyUp)
+    const handleKeyDown = (e) => keys.current[e.code] = true
+    const handleKeyUp = (e) => keys.current[e.code] = false
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
     return () => {
-      window.removeEventListener('keydown', onKeyDown)
-      window.removeEventListener('keyup', onKeyUp)
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
     }
   }, [])
 
   useFrame(() => {
-    if (!group.current) return
+    if (!ref.current) return
 
-    const moveDirection = new THREE.Vector3()
-    const rotation = group.current.rotation
-
-    const gamepads = navigator.getGamepads()
-    const gp = gamepads[0] 
-    let gpX = 0, gpZ = 0, gpRot = 0
+    const direction = new THREE.Vector3()
+    const rotation = ref.current.rotation
+    const gp = navigator.getGamepads?.()[0]
+    let axisX = 0, axisZ = 0, axisTurn = 0
 
     if (gp) {
-
-      gpX = gp.axes[0] 
-      gpZ = gp.axes[1] 
-      gpRot = gp.axes[2] 
-
-      if (Math.abs(gpX) > 0.1) moveDirection.x += gpX
-      if (Math.abs(gpZ) > 0.1) moveDirection.z += gpZ
-      if (Math.abs(gpRot) > 0.1) group.current.rotation.y -= gpRot * rotationSpeed
+      axisX = Math.abs(gp.axes[0]) > 0.1 ? gp.axes[0] : 0
+      axisZ = Math.abs(gp.axes[1]) > 0.1 ? gp.axes[1] : 0
+      axisTurn = Math.abs(gp.axes[2]) > 0.1 ? gp.axes[2] : 0
     }
 
-    if (keys.current['KeyW']) moveDirection.z -= 1
-    if (keys.current['KeyS']) moveDirection.z += 1
-    if (keys.current['KeyA']) moveDirection.x -= 1
-    if (keys.current['KeyD']) moveDirection.x += 1
-    if (keys.current['ArrowLeft']) group.current.rotation.y += rotationSpeed
-    if (keys.current['ArrowRight']) group.current.rotation.y -= rotationSpeed
+    if (keys.current['KeyW']) direction.z -= 1
+    if (keys.current['KeyS']) direction.z += 1
+    if (keys.current['KeyA']) direction.x -= 1
+    if (keys.current['KeyD']) direction.x += 1
+    if (keys.current['ArrowLeft']) ref.current.rotation.y += turnSpeed
+    if (keys.current['ArrowRight']) ref.current.rotation.y -= turnSpeed
 
-    moveDirection.normalize().applyEuler(rotation)
-    group.current.position.addScaledVector(moveDirection, speed)
+    direction.x += axisX
+    direction.z += axisZ
+    ref.current.rotation.y -= axisTurn * turnSpeed
 
-    const camOffset = new THREE.Vector3(0, 2, 5).applyEuler(rotation)
-    camera.position.lerp(group.current.position.clone().add(camOffset), 0.1)
-    camera.lookAt(group.current.position)
+    direction.normalize().applyEuler(rotation)
+    ref.current.position.addScaledVector(direction, velocity)
 
-    if (socket && socket.connected) {
-      socket.emit('player_move', {
-        nickname,
-        position: {
-          x: group.current.position.x,
-          y: group.current.position.y,
-          z: group.current.position.z
-        },
-        rotation: [
-          group.current.rotation.x,
-          group.current.rotation.y,
-          group.current.rotation.z
-        ]
-      })
-    }
+    const targetCamPos = ref.current.position.clone().add(new THREE.Vector3(0, 2, 5).applyEuler(rotation))
+    camera.position.lerp(targetCamPos, 0.1)
+    camera.lookAt(ref.current.position)
+
+    socket?.connected && socket.emit('player_move', {
+      nickname,
+      position: {
+        x: ref.current.position.x,
+        y: ref.current.position.y,
+        z: ref.current.position.z
+      },
+      rotation: [
+        ref.current.rotation.x,
+        ref.current.rotation.y,
+        ref.current.rotation.z
+      ]
+    })
   })
 
   return (
-    <group ref={group} position={[0, 0, 0]}>
+    <group ref={ref} position={[0, 0, 0]}>
       <Avatar scale={0.5} />
       <Text
         position={[0, 2.2, 0]}
