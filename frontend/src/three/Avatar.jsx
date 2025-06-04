@@ -3,7 +3,7 @@ import { useEffect, useRef, forwardRef } from 'react'
 import * as THREE from 'three'
 
 const Avatar = forwardRef(({ scale = 0.3, nickname = 'Guest' }, ref) => {
-  const { scene } = useGLTF('/models/Avatar.glb')
+  const { scene } = useGLTF('/models/Avatar.glb')  
   const nameRef = useRef()
 
   useEffect(() => {
@@ -36,4 +36,3 @@ const Avatar = forwardRef(({ scale = 0.3, nickname = 'Guest' }, ref) => {
 })
 
 export default Avatar
-
