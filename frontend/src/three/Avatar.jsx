@@ -1,19 +1,30 @@
-import { useGLTF, extend } from '@react-three/drei'
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry'
+import { Text } from '@react-three/drei'
+import { useRef } from 'react'
 import * as THREE from 'three'
 
-extend({ TextGeometry })
+function PlayerAvatar({ position, rotation, nickname, isSelf }) {
+  const ref = useRef()
 
-export default function Avatar({ position = [0, 0, 0], nickname = "Guest" }) {
-  const { scene } = useGLTF('/models/Avatar.glb')
+  useFrame(() => {
+    if (ref.current) {
+      ref.current.position.lerp(new THREE.Vector3(...position), 0.2)
+      ref.current.rotation.y = rotation[1]
+    }
+  })
 
   return (
-    <group position={position}>
-      <primitive object={scene} scale={0.3} />
-      <mesh position={[0, 2, 0]}>
-        <textGeometry args={[nickname, { size: 0.3, height: 0.05, curveSegments: 12 }]} />
-        <meshBasicMaterial color="white" />
-      </mesh>
+    <group ref={ref}>
+      <Avatar scale={0.5} />
+      <Text
+        position={[0, 2.2, 0]}
+        fontSize={0.3}
+        height={0.05}
+        color={isSelf ? 'blue' : 'white'}
+        anchorX="center"
+        anchorY="middle"
+      >
+        {nickname}
+      </Text>
     </group>
   )
 }
