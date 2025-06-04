@@ -1,38 +1,17 @@
-import React, { useEffect, useRef, useState, Suspense } from 'react'
+import React, { useEffect, useState, Suspense } from 'react'
 import { Canvas } from '@react-three/fiber'
 import io from 'socket.io-client'
-import * as THREE from 'three'
-
 import AncientRoom from '../three/AncientRoom'
 import Avatar from '../three/Avatar'
 import Player from '../components/Player'
 import Chat from '../components/Chat'
-import { Text } from '@react-three/drei'
 
 const SOCKET_URL = 'https://metaspace-yhja.onrender.com'
 
-function PlayerAvatar({ position = [0, 0, 0], rotation = [0, 0, 0], nickname }) {
-  const ref = useRef()
-
-  useEffect(() => {
-    if (ref.current) {
-      ref.current.position.set(...position)
-      ref.current.rotation.set(...rotation)
-    }
-  }, [position, rotation])
-
+function RemotePlayer({ position = [0, 0, 0], rotation = [0, 0, 0], nickname }) {
   return (
-    <group ref={ref}>
-      <Avatar scale={0.5} />
-      <Text
-        position={[0, 2.2, 0]}
-        fontSize={0.3}
-        color="white"
-        anchorX="center"
-        anchorY="middle"
-      >
-        {nickname}
-      </Text>
+    <group position={position} rotation={rotation}>
+      <Avatar nickname={nickname} />
     </group>
   )
 }
@@ -90,14 +69,12 @@ export default function Room() {
         <Canvas camera={{ position: [0, 2, 5], fov: 60 }}>
           <Suspense fallback={null}>
             <AncientRoom />
-            {/* Ваш собственный игрок */}
             {socket && <Player socket={socket} nickname={nickname} />}
-            {/* Другие игроки */}
             {Object.entries(players).map(([id, player]) =>
               id !== socket?.id && player?.position ? (
-                <PlayerAvatar
+                <RemotePlayer
                   key={id}
-                  position={player.position}
+                  position={Object.values(player.position)}
                   rotation={player.rotation || [0, 0, 0]}
                   nickname={player.nickname}
                 />
@@ -106,13 +83,9 @@ export default function Room() {
           </Suspense>
         </Canvas>
       </div>
-
       <div className="h-48 border-t">
-        {socket && (
-          <Chat socket={socket} messages={chatMessages} nickname={nickname} />
-        )}
+        {socket && <Chat socket={socket} messages={chatMessages} nickname={nickname} />}
       </div>
     </div>
   )
 }
-
