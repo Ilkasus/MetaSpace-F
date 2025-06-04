@@ -91,13 +91,13 @@ export default function useSocket() {
   }
 
   return {
-    connected,
-    messages,
-    usersCount,
-    players,
-    sendMessage,
-    movePlayer,
-    initPlayer,
-    nickname: nicknameRef.current,
-  };
-}
+   connected,
+   messages,
+   usersCount,
+   players,
+   sendMessage,
+   movePlayer,
+   initPlayer,
+   nickname: nicknameRef.current,
+   socket: socket.current // <== добавь это
+ };
