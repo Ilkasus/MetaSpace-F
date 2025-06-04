@@ -7,6 +7,7 @@ import AncientRoom from '../three/AncientRoom'
 import Avatar from '../three/Avatar'
 import Chat from '../components/Chat'
 import PlayerController from '../components/PlayerController'
+import { Text } from '@react-three/drei'
 
 const SOCKET_URL = 'https://metaspace-yhja.onrender.com'
 
@@ -19,13 +20,15 @@ function PlayerControls({ socket }) {
   const speed = 3
 
   useEffect(() => {
-    const down = (e) => keysPressed.current[e.key.toLowerCase()] = true
-    const up = (e) => keysPressed.current[e.key.toLowerCase()] = false
-    window.addEventListener('keydown', down)
-    window.addEventListener('keyup', up)
+    const downHandler = (e) => keysPressed.current[e.key.toLowerCase()] = true
+    const upHandler = (e) => keysPressed.current[e.key.toLowerCase()] = false
+
+    window.addEventListener('keydown', downHandler)
+    window.addEventListener('keyup', upHandler)
+
     return () => {
-      window.removeEventListener('keydown', down)
-      window.removeEventListener('keyup', up)
+      window.removeEventListener('keydown', downHandler)
+      window.removeEventListener('keyup', upHandler)
     }
   }, [])
 
@@ -42,6 +45,7 @@ function PlayerControls({ socket }) {
     ref.current.position.add(direction.current)
 
     const pos = ref.current.position
+
     camera.position.lerp(new THREE.Vector3(pos.x, pos.y + 2, pos.z + 5), 0.1)
     camera.lookAt(pos)
 
@@ -71,10 +75,15 @@ function PlayerAvatar({ position, rotation, nickname, isSelf }) {
   return (
     <group ref={ref}>
       <Avatar scale={0.5} />
-      <mesh position={[0, 2.2, 0]}>
-        <textGeometry args={[nickname, { size: 0.3, height: 0.05 }]} />
-        <meshBasicMaterial color={isSelf ? 'blue' : 'white'} />
-      </mesh>
+      <Text
+        position={[0, 2.2, 0]}
+        fontSize={0.3}
+        color={isSelf ? 'blue' : 'white'}
+        anchorX="center"
+        anchorY="middle"
+      >
+        {nickname}
+      </Text>
     </group>
   )
 }
@@ -109,11 +118,10 @@ export default function Room() {
         <Canvas camera={{ position: [0, 2, 5], fov: 60 }}>
           <Suspense fallback={null}>
             <AncientRoom />
-
             <PlayerController />
-
             {socket && <PlayerControls socket={socket} />}
 
+            {/* Рендерим всех других игроков */}
             {Object.entries(players).map(([id, player]) => (
               id !== socket?.id && (
                 <PlayerAvatar
@@ -133,3 +141,4 @@ export default function Room() {
     </div>
   )
 }
+
