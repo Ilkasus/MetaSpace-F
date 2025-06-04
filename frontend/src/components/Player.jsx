@@ -2,7 +2,6 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import Avatar from '../three/Avatar'
-import { Text } from '@react-three/drei'
 
 export default function Player({ socket, nickname }) {
   const ref = useRef()
@@ -92,10 +91,8 @@ export default function Player({ socket, nickname }) {
 
   return (
     <group ref={ref} position={[0, 0, 0]}>
-      <Avatar scale={0.5} />
-      <Text position={[0, 2.2, 0]} fontSize={0.3} color="blue" anchorX="center" anchorY="middle">
-        {nickname}
-      </Text>
+      <Avatar nickname={nickname} />
     </group>
   )
 }
+
