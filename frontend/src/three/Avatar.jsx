@@ -6,7 +6,7 @@ import * as THREE from 'three'
 extend({ TextGeometry })
 
 export default function Avatar({ position = [0, 0, 0], nickname = "Guest" }) {
-  const { scene } = useGLTF('/models/Avatar.glb')
+  const { scene } = useGLTF('/public/models/Avatar.glb')
 
   return (
     <group position={position}>
