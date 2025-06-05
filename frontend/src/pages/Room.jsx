@@ -40,7 +40,7 @@ export default function Room() {
     setSocket(newSocket)
 
     newSocket.on('connect', () => {
-      console.log('[socket] connected:', newSocket.id)
+      console.log('[socket] Connected:', newSocket.id)
       newSocket.emit('join', { nickname })
     })
 
@@ -53,9 +53,13 @@ export default function Room() {
     })
 
     newSocket.on('disconnect', () => {
-      console.log('[socket] disconnected')
+      console.log('[socket] Disconnected')
       setPlayers({})
       setChatMessages([])
+    })
+
+    newSocket.on('connect_error', (err) => {
+      console.error('[socket] Connection error:', err.message)
     })
 
     return () => {
@@ -67,9 +71,11 @@ export default function Room() {
     <div className="w-screen h-screen flex flex-col">
       <div className="flex-grow">
         <Canvas camera={{ position: [0, 2, 5], fov: 60 }}>
-          <Suspense fallback={null}>
+          <Suspense fallback={<mesh><boxGeometry /><meshStandardMaterial color="gray" /></mesh>}>
             <AncientRoom />
+
             {socket && <Player socket={socket} nickname={nickname} />}
+
             {Object.entries(players).map(([id, player]) =>
               id !== socket?.id && player?.position ? (
                 <RemotePlayer
@@ -83,8 +89,11 @@ export default function Room() {
           </Suspense>
         </Canvas>
       </div>
+
       <div className="h-48 border-t">
-        {socket && <Chat socket={socket} messages={chatMessages} nickname={nickname} />}
+        {socket && (
+          <Chat socket={socket} messages={chatMessages} nickname={nickname} />
+        )}
       </div>
     </div>
   )
