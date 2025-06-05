@@ -3,7 +3,7 @@ import { useEffect, useRef, forwardRef } from 'react'
 import * as THREE from 'three'
 
 const Avatar = forwardRef(({ scale = 0.3, nickname = 'Guest' }, ref) => {
-  const { scene } = useGLTF('/models/Avatar.glb')  
+  const { scene } = useGLTF('/models/Avatar.glb')
   const nameRef = useRef()
 
   useEffect(() => {
@@ -17,7 +17,11 @@ const Avatar = forwardRef(({ scale = 0.3, nickname = 'Guest' }, ref) => {
       context.font = '48px Arial'
       context.fillStyle = 'white'
       context.fillText(nickname, 0, 48)
+
       const texture = new THREE.CanvasTexture(canvas)
+      texture.encoding = THREE.sRGBEncoding 
+      texture.needsUpdate = true
+
       nameRef.current.material.map = texture
       nameRef.current.material.transparent = true
       nameRef.current.material.needsUpdate = true
@@ -25,11 +29,12 @@ const Avatar = forwardRef(({ scale = 0.3, nickname = 'Guest' }, ref) => {
   }, [nickname])
 
   return (
-    <group ref={ref}>
+    <group ref={ref} dispose={null}>
       <primitive object={scene} scale={scale} />
+
       <mesh ref={nameRef} position={[0, 2, 0]}>
         <planeGeometry args={[2, 0.5]} />
-        <meshBasicMaterial />
+        <meshBasicMaterial side={THREE.DoubleSide} transparent />
       </mesh>
     </group>
   )
