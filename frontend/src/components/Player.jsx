@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import Avatar from '../three/Avatar'
 
 export default function Player({ socket, nickname }) {
-  const ref = useRef()
+  const avatarRef = useRef()
   const { camera } = useThree()
   const keys = useRef({})
   const [thirdPerson, setThirdPerson] = useState(true)
@@ -30,10 +30,10 @@ export default function Player({ socket, nickname }) {
   }, [])
 
   useFrame(() => {
-    if (!ref.current) return
+    if (!avatarRef.current) return
 
     const dir = new THREE.Vector3()
-    const rot = ref.current.rotation
+    const rot = avatarRef.current.rotation
     const gp = navigator.getGamepads?.()[0]
     let axisX = 0, axisZ = 0, axisTurn = 0
     let jumpPressed = keys.current['Space']
@@ -56,7 +56,7 @@ export default function Player({ socket, nickname }) {
     dir.z += axisZ
     rot.y -= axisTurn * turnSpeed
     dir.normalize().applyEuler(rot)
-    ref.current.position.addScaledVector(dir, velocity)
+    avatarRef.current.position.addScaledVector(dir, velocity)
 
     if (jumpPressed && !isJumping.current) {
       yVelocity.current = jumpSpeed
@@ -64,9 +64,9 @@ export default function Player({ socket, nickname }) {
     }
 
     yVelocity.current -= gravity
-    ref.current.position.y += yVelocity.current
-    if (ref.current.position.y <= 0) {
-      ref.current.position.y = 0
+    avatarRef.current.position.y += yVelocity.current
+    if (avatarRef.current.position.y <= 0) {
+      avatarRef.current.position.y = 0
       yVelocity.current = 0
       isJumping.current = false
     }
@@ -74,25 +74,20 @@ export default function Player({ socket, nickname }) {
     const camOffset = thirdPerson
       ? new THREE.Vector3(0, 2, 5)
       : new THREE.Vector3(0, 1.5, 0.1)
-    const camTarget = ref.current.position.clone().add(camOffset.applyEuler(rot))
+    const camTarget = avatarRef.current.position.clone().add(camOffset.applyEuler(rot))
     camera.position.lerp(camTarget, 0.1)
-    camera.lookAt(ref.current.position)
+    camera.lookAt(avatarRef.current.position)
 
     socket?.connected && socket.emit('player_move', {
       nickname,
       position: {
-        x: ref.current.position.x,
-        y: ref.current.position.y,
-        z: ref.current.position.z
+        x: avatarRef.current.position.x,
+        y: avatarRef.current.position.y,
+        z: avatarRef.current.position.z
       },
       rotation: [rot.x, rot.y, rot.z]
     })
   })
 
-  return (
-    <group ref={ref} position={[0, 0, 0]}>
-      <Avatar nickname={nickname} />
-    </group>
-  )
+  return <Avatar ref={avatarRef} nickname={nickname} />
 }
-
