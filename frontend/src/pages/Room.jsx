@@ -11,7 +11,7 @@ const SOCKET_URL = 'https://metaspace-yhja.onrender.com'
 function RemotePlayer({ position = [0, 0, 0], rotation = [0, 0, 0], nickname }) {
   return (
     <group position={position} rotation={rotation}>
-      <Avatar nickname={nickname} />
+      <Avatar nickname={nickname} scale={0.9} />
     </group>
   )
 }
@@ -77,7 +77,9 @@ export default function Room() {
             {socket && <Player socket={socket} nickname={nickname} />}
 
             {Object.entries(players).map(([id, player]) =>
-              id !== socket?.id && player?.position ? (
+              id !== socket?.id &&
+              player?.position &&
+              player?.nickname ? (
                 <RemotePlayer
                   key={id}
                   position={Object.values(player.position)}
